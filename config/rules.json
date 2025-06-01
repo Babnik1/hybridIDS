@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "description": "Блокировать все TCP пакеты с порта 80",
+    "protocol": "TCP",
+    "src_port": 80,
+    "action": "block"
+  },
+  {
+    "id": 2,
+    "description": "Блокировать UDP трафик с IP 192.168.1.100",
+    "protocol": "UDP",
+    "src_ip": "192.168.1.100",
+    "action": "block"
+  }
+]

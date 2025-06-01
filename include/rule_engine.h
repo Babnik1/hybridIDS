@@ -1,0 +1,35 @@
+#pragma once
+
+#include <vector>
+#include <string>
+#include <unordered_set>
+
+#include"logger.h"
+#include "packet.h"
+#include "nftables_control.h"
+
+struct Rule
+{
+    std::string srcIP;
+    std::string dstIP;
+    int srcPort = -1;
+    int dstPort = -1;
+    std::string protocol;
+};
+
+class RuleEngine
+{
+public:
+    RuleEngine(Logger* logger = nullptr);
+
+    bool loadRules(const std::string& fileName);
+    bool checkPacket(const Packet& packet);
+    bool loadWhitelist(const std::string& fileName);
+
+private:
+    std::vector<Rule> rules;
+    NftablesControl nft;
+    std::unordered_set<std::string> blockedIPs;
+    std::unordered_set<std::string> whitelist;
+    Logger* logger;
+};

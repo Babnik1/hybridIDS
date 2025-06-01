@@ -1,0 +1,43 @@
+[2025-06-01 14:50:53][INFO][main] Уровень логирования: INFO
+[2025-06-01 14:50:53][INFO][main] Интерфейс: eth0
+[2025-06-01 14:50:53][INFO][main] Запуск hybridIDS
+[2025-06-01 15:00:04][INFO][main] Уровень логирования: INFO
+[2025-06-01 15:00:04][INFO][main] Интерфейс: eth0
+[2025-06-01 15:00:04][INFO][main] Запуск hybridIDS
+[2025-06-01 15:08:15][INFO][main] Уровень логирования: INFO
+[2025-06-01 15:08:15][INFO][main] Интерфейс: eth0
+[2025-06-01 15:08:15][INFO][main] Запуск hybridIDS
+[2025-06-01 15:08:15][ERROR][rule_engine] Формат файла правил должен быть массивом JSON
+[2025-06-01 15:08:15][ERROR][rule_engine] Ошибка загрузки правил
+[2025-06-01 15:13:01][INFO][main] Уровень логирования: INFO
+[2025-06-01 15:13:01][INFO][main] Интерфейс: eth0
+[2025-06-01 15:13:01][INFO][main] Запуск hybridIDS
+[2025-06-01 15:13:01][INFO][rule_engine] Успешно загружено правил: 2
+[2025-06-01 15:13:01][ERROR][sniffer] Ошибка открытия интерфейса eth0: eth0: You don't have permission to perform this capture on that device (socket: Operation not permitted)
+[2025-06-01 15:13:12][INFO][main] Получен сигнал завершения (2)
+[2025-06-01 15:13:13][INFO][main] Остановка hybridIDS
+[2025-06-01 15:13:13][INFO][main] hybridIDS завершен
+[2025-06-01 15:13:16][INFO][main] Уровень логирования: INFO
+[2025-06-01 15:13:16][INFO][main] Интерфейс: eth0
+[2025-06-01 15:13:16][INFO][main] Запуск hybridIDS
+[2025-06-01 15:13:16][INFO][rule_engine] Успешно загружено правил: 2
+[2025-06-01 15:13:16][ERROR][sniffer] Ошибка открытия интерфейса eth0: eth0: No such device exists (No such device exists)
+[2025-06-01 15:13:33][INFO][main] Получен сигнал завершения (2)
+[2025-06-01 15:13:34][INFO][main] Остановка hybridIDS
+[2025-06-01 15:13:34][INFO][main] hybridIDS завершен
+[2025-06-01 15:14:07][INFO][main] Уровень логирования: INFO
+[2025-06-01 15:14:07][INFO][main] Интерфейс: ether
+[2025-06-01 15:14:07][INFO][main] Запуск hybridIDS
+[2025-06-01 15:14:07][INFO][rule_engine] Успешно загружено правил: 2
+[2025-06-01 15:14:07][ERROR][sniffer] Ошибка открытия интерфейса ether: ether: No such device exists (No such device exists)
+[2025-06-01 15:14:20][INFO][main] Получен сигнал завершения (2)
+[2025-06-01 15:14:21][INFO][main] Остановка hybridIDS
+[2025-06-01 15:14:21][INFO][main] hybridIDS завершен
+[2025-06-01 15:15:02][INFO][main] Уровень логирования: INFO
+[2025-06-01 15:15:02][INFO][main] Интерфейс: enp0s3
+[2025-06-01 15:15:02][INFO][main] Запуск hybridIDS
+[2025-06-01 15:15:02][INFO][rule_engine] Успешно загружено правил: 2
+[2025-06-01 15:15:55][INFO][main] Получен сигнал завершения (2)
+[2025-06-01 15:15:56][INFO][main] Остановка hybridIDS
+[2025-06-01 15:15:56][INFO][main] hybridIDS завершен
+[2025-06-01 15:18:55][ERROR][sniffer] Ошибка открытия интерфейса enp03: enp03: No such device exists (No such device exists)
