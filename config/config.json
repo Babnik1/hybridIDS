@@ -1,5 +1,7 @@
 {
   "interface": "enp0s3",
   "log_level": "info",
-  "alert_cooldown": 10
+  "alert_cooldown": 10,
+  "heuristicPacketThreshold": 100,
+  "heuristicTimeWindowSeconds": 10
 }

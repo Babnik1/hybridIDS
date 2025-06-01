@@ -56,7 +56,7 @@ int main()
         return 1;
     }
 
-    HeuristicEngine heuristicEngine(&logger);
+    HeuristicEngine heuristicEngine(config, &logger);
     NftablesControl nftables(&logger);
     Sniffer sniffer(config.interface, &logger);
 

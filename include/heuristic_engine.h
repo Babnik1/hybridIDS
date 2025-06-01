@@ -6,11 +6,12 @@
 
 #include "packet.h"
 #include "logger.h"
+#include "config_utils.h"
 
 class HeuristicEngine
 {
 public:
-    HeuristicEngine(Logger* logger = nullptr);
+    HeuristicEngine(Config& config, Logger* logger = nullptr);
 
     // Возвращает true, если обнаружена подозрительная активность
     bool analyzePacket(const Packet& packet, const uint8_t* rawData, size_t dataLen);
@@ -25,8 +26,8 @@ private:
     };
 
     std::unordered_map<std::string, IpStats> ipStats;
-    const int packetThreshold = 100;       // Порог пакетов
-    const std::chrono::seconds timeWindow = std::chrono::seconds(10); // Временной интервал
+    const int packetThreshold;       // Порог пакетов
+    const std::chrono::seconds timeWindow; // Временной интервал
 
     bool checkPacketRate(const Packet& packet);
     bool checkTcpFlags(const Packet& packet, const uint8_t* rawData, size_t dataLen);

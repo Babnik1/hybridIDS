@@ -43,7 +43,14 @@ bool loadConfig(const std::string& fileName, Config& config)
             config.alertCooldown = j["alert_cooldown"].get<int>();
         else
             config.alertCooldown = 10;
-
+        if (j.contains("heuristicPacketThreshold") && j["heuristicPacketThreshold"].is_number_integer())
+            config.heuristicPacketThreshold = j["heuristicPacketThreshold"].get<int>();
+        else
+            config.heuristicPacketThreshold = 100;
+        if (j.contains("heuristicTimeWindowSeconds") && j["heuristicTimeWindowSeconds"].is_number_integer())
+            config.heuristicTimeWindowSeconds = j["heuristicTimeWindowSeconds"].get<int>();
+        else
+            config.heuristicTimeWindowSeconds = 10;
         return true;
     }
     catch (...)

@@ -4,10 +4,11 @@
 #include <net/ethernet.h>
 #include <netinet/ip.h>
 
-
 #include "heuristic_engine.h"
 
-HeuristicEngine::HeuristicEngine(Logger* logger) : logger(logger) {}
+HeuristicEngine::HeuristicEngine(Config& config, Logger* logger)
+    : logger(logger), packetThreshold(config.heuristicPacketThreshold), timeWindow(std::chrono::seconds(config.heuristicTimeWindowSeconds))
+{}
 
 bool HeuristicEngine::analyzePacket(const Packet& packet, const uint8_t* rawData, size_t dataLen)
 {
