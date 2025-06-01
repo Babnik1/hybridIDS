@@ -42,7 +42,7 @@ int main()
     logger.log("Interface: " + config.interface, "main", LogLevel::INFO);
     logger.log("Starting hybridIDS", "main", LogLevel::INFO);
 
-    RuleEngine ruleEngine(&logger);
+    RuleEngine ruleEngine(config, &logger);
     if (!ruleEngine.loadRules("config/rules.json"))
     {
         logger.log("Error loading rules", "rule_engine", LogLevel::ERROR);

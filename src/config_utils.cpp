@@ -39,6 +39,11 @@ bool loadConfig(const std::string& fileName, Config& config)
         else
             config.logLevel = LogLevel::INFO;
 
+        if (j.contains("alert_cooldown") && j["alert_cooldown"].is_number_integer())
+            config.alertCooldown = j["alert_cooldown"].get<int>();
+        else
+            config.alertCooldown = 10;
+
         return true;
     }
     catch (...)

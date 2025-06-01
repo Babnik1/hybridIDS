@@ -6,7 +6,7 @@
 
 using json = nlohmann::json;
 
-RuleEngine::RuleEngine(Logger* logger) : logger(logger)
+RuleEngine::RuleEngine(const Config& config, Logger* logger) : logger(logger), alertCooldownSeconds(config.alertCooldown)
 {
     if (!nft.init())
     {
@@ -101,9 +101,15 @@ bool RuleEngine::checkPacket(const Packet& packet)
             continue;
         if (!rule.protocol.empty() && rule.protocol != packet.protocol)
             continue;
-        if(logger)
-            logger->log("Suspicious package detected: " + packet.summary(), "rule_engine", LogLevel::WARNING);
 
+        time_t now = std::time(nullptr);
+        auto it = recentAlerts.find(packet.srcIP);
+        if (it == recentAlerts.end() || difftime(now, it->second) > alertCooldownSeconds)
+        {
+            recentAlerts[packet.srcIP] = now;
+            if(logger)
+                logger->log("Suspicious package detected: " + packet.summary(), "rule_engine", LogLevel::WARNING);
+        }
         // Блокируем IP
         if (!blockedIPs.contains(packet.srcIP))
         {

@@ -7,6 +7,7 @@
 #include"logger.h"
 #include "packet.h"
 #include "nftables_control.h"
+#include "config_utils.h"
 
 struct Rule
 {
@@ -20,7 +21,7 @@ struct Rule
 class RuleEngine
 {
 public:
-    RuleEngine(Logger* logger = nullptr);
+    RuleEngine(const Config& config, Logger* logger = nullptr);
 
     bool loadRules(const std::string& fileName);
     bool checkPacket(const Packet& packet);
@@ -32,4 +33,7 @@ private:
     std::unordered_set<std::string> blockedIPs;
     std::unordered_set<std::string> whitelist;
     Logger* logger;
+
+    std::unordered_map<std::string, time_t> recentAlerts;
+    int alertCooldownSeconds;
 };
