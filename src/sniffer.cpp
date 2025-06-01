@@ -32,7 +32,7 @@ void Sniffer::start()
     if (!handle)
     {
         if (logger)
-            logger->log(std::string("Ошибка открытия интерфейса ") + interface + ": " + errbuf, "sniffer", LogLevel::ERROR);
+            logger->log(std::string("Error opening interface ") + interface + ": " + errbuf, "sniffer", LogLevel::ERROR);
         return;
     }
 
@@ -118,7 +118,7 @@ void Sniffer::captureLoop()
         else if (result == -1)
         {
             if (logger)
-                logger->log(std::string("Ошибка pcap_next_ex: ") + pcap_geterr(handle), "sniffer", LogLevel::ERROR);
+                logger->log(std::string("pcap_next_ex error: ") + pcap_geterr(handle), "sniffer", LogLevel::DEBUG);
             break;
         }
     }

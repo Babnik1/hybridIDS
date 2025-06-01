@@ -15,7 +15,7 @@ Logger::Logger(const std::string& filename)
     logFile.open(filename, std::ios::app);
     if (!logFile)
     {
-        std::cout << "Ошибка открытия лог файла: " << filename << std::endl;
+        std::cout << "Error opening log file: " << filename << std::endl;
     }
 }
 

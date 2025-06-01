@@ -5,10 +5,10 @@ IMAGE_NAME="hybridids-build"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DEPLOY_DIR="/opt/hybridids"
 
-echo "Собираем Docker образ..."
+echo "[build.sh]: Building a Docker image..."
 docker build -t $IMAGE_NAME .
 
-echo "Запускаем сборку внутри контейнера..."
+echo "[build.sh]: Starting the build inside the container..."
 docker run --rm -it \
   -v "$PWD":/app \
   -w /app \
@@ -20,9 +20,9 @@ docker run --rm -it \
     cmake --build build
   "
 
-echo "Сборка завершена."
+echo "[build.sh]: Assembly complete."
 
-echo "Устанавливаем HybridIDS в $DEPLOY_DIR..."
+echo "[build.sh]: Installing HybridIDS in $DEPLOY_DIR..."
 
 sudo mkdir -p "$DEPLOY_DIR/bin"
 sudo mkdir -p "$DEPLOY_DIR/config"
@@ -34,7 +34,7 @@ if [ -d "$PROJECT_DIR/config" ]; then
   sudo cp -r "$PROJECT_DIR/config/"* "$DEPLOY_DIR/config/"
 fi
 
-echo "Создаём systemd unit-файл..."
+echo "[build.sh]: Create a systemd unit file..."
 
 sudo bash -c "cat > /etc/systemd/system/hybridids.service <<EOF
 [Unit]
@@ -55,12 +55,12 @@ WantedBy=multi-user.target
 EOF
 "
 
-echo "Обновляем systemd..."
+echo "[build.sh]: Updating systemd..."
 sudo systemctl daemon-reload
 sudo systemctl enable hybridids.service
 
-echo "Установка завершена!"
-echo "Запустить можно так:"
+echo "[build.sh]: Installation complete!"
+echo "The service of the hybridIDS is launched as follows:"
 echo "  sudo systemctl start hybridids.service"
-echo "Логи можно посмотреть командой:"
-echo "  sudo journalctl -u hybridids.service -f"
+echo "Logs can be viewed at the address:"
+echo "  /opt/hybridids/logs/hibridIDS.log"

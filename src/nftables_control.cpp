@@ -37,14 +37,14 @@ bool NftablesControl::init()
     if (nl == nullptr)
     {
         if (logger)
-            logger->log("Ошибка при открытии сокета Netlink.", "nftables", LogLevel::ERROR);
+            logger->log("Error opening Netlink socket.", "nftables", LogLevel::ERROR);
         return false;
     }
 
     if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0)
     {
         if (logger)
-            logger->log("Ошибка при привязке сокета Netlink.", "nftables", LogLevel::ERROR);
+            logger->log("Error while binding Netlink socket.", "nftables", LogLevel::ERROR);
         mnl_socket_close(nl);
         nl = nullptr;
         return false;
@@ -53,7 +53,7 @@ bool NftablesControl::init()
     if (!ensureTable() || !ensureChain())
     {
         if (logger)
-            logger->log("Ошибка при создании таблицы или цепочки nftables.", "nftables", LogLevel::ERROR);
+            logger->log("Error creating nftables table or chain.", "nftables", LogLevel::ERROR);
         return false;
     }
 
@@ -118,7 +118,7 @@ bool NftablesControl::ensureChain()
 bool NftablesControl::blockIP(const std::string& ip)
 {
     if (logger)
-        logger->log("Блокировка IP через nftables: " + ip, "nftables", LogLevel::INFO);
+        logger->log("IP blocking via nftables: " + ip, "nftables", LogLevel::INFO);
 
     struct nftnl_rule* rule = nftnl_rule_alloc();
     if (!rule) return false;

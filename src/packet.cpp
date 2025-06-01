@@ -5,7 +5,7 @@
 std::string Packet::summary() const
 {
     std::ostringstream oss;
-    oss << "Протокол: " << protocol
+    oss << "Prtotcol: " << protocol
         << ", " << srcIP << ":" << srcPort
         << " → " << dstIP << ":" << dstPort;
     return oss.str();

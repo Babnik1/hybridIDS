@@ -19,7 +19,7 @@ Logger* globalLogger = nullptr;
 void signalHandler(int signum)
 {
     if (globalLogger)
-        globalLogger->log("Получен сигнал завершения (" + std::to_string(signum) + ")", "main", LogLevel::INFO);
+        globalLogger->log("Termination signal received (" + std::to_string(signum) + ")", "main", LogLevel::INFO);
     running = false;
 }
 
@@ -28,7 +28,7 @@ int main()
     Config config;
     if (!loadConfig(configPath, config))
     {
-        std::cerr << "Не удалось загрузить конфигурацию из config.json\n";
+        std::cerr << "Failed to load configuration from config.json\n";
         return 1;
     }
     Logger logger;
@@ -38,20 +38,20 @@ int main()
     std::signal(SIGINT, signalHandler);
     std::signal(SIGTERM, signalHandler);
 
-    logger.log(std::string("Уровень логирования: ") + Logger::levelToString(config.logLevel), "main", LogLevel::INFO);
-    logger.log("Интерфейс: " + config.interface, "main", LogLevel::INFO);
-    logger.log("Запуск hybridIDS", "main", LogLevel::INFO);
+    logger.log(std::string("Logging level: ") + Logger::levelToString(config.logLevel), "main", LogLevel::INFO);
+    logger.log("Interface: " + config.interface, "main", LogLevel::INFO);
+    logger.log("Starting hybridIDS", "main", LogLevel::INFO);
 
     RuleEngine ruleEngine(&logger);
     if (!ruleEngine.loadRules("config/rules.json"))
     {
-        logger.log("Ошибка загрузки правил", "rule_engine", LogLevel::ERROR);
+        logger.log("Error loading rules", "rule_engine", LogLevel::ERROR);
         return 1;
     }
 
     if (!ruleEngine.loadWhitelist("config/whitelist.txt"))
     {
-        logger.log("Ошибка загрузки белого списка", "rule_engine", LogLevel::ERROR);
+        logger.log("Error loading whitelist", "rule_engine", LogLevel::ERROR);
         return 1;
     }
 
@@ -62,7 +62,7 @@ int main()
     {
         if (ruleEngine.checkPacket(pkt))
         {
-            logger.log("Найдена угроза:" + pkt.summary(), "rule_engine", LogLevel::WARNING);
+            logger.log("Threat found:" + pkt.summary(), "rule_engine", LogLevel::WARNING);
             nftables.blockIP(pkt.srcIP);
         }
     });
@@ -77,12 +77,12 @@ int main()
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    logger.log("Остановка hybridIDS", "main", LogLevel::INFO);
+    logger.log("Stop hybridIDS", "main", LogLevel::INFO);
     sniffer.stop();
 
     if (snifferThread.joinable())
         snifferThread.join();
 
-    logger.log("hybridIDS завершен", "main", LogLevel::INFO);
+    logger.log("hybridIDS completed", "main", LogLevel::INFO);
     return 0;
 }

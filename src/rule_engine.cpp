@@ -11,7 +11,7 @@ RuleEngine::RuleEngine(Logger* logger) : logger(logger)
     if (!nft.init())
     {
         if(logger)
-            logger->log("Ошибка инициализации NftablesControl", "rule_engine", LogLevel::ERROR);
+            logger->log("Error initializing NftablesControl", "rule_engine", LogLevel::ERROR);
     }
 }
 
@@ -21,7 +21,7 @@ bool RuleEngine::loadRules(const std::string& fileName)
     if (!file.is_open())
     {
         if (logger)
-            logger->log("Не удалось открыть файл правил: " + fileName, "rule_engine", LogLevel::ERROR);
+            logger->log("Failed to open rules file: " + fileName, "rule_engine", LogLevel::ERROR);
         return false;
     }
 
@@ -33,13 +33,13 @@ bool RuleEngine::loadRules(const std::string& fileName)
     catch (const json::parse_error& e)
     {
         if (logger)
-            logger->log(std::string("Ошибка парсинга JSON правил: ") + e.what(), "rule_engine", LogLevel::ERROR);
+            logger->log(std::string("Error parsing JSON rules: ") + e.what(), "rule_engine", LogLevel::ERROR);
         return false;
     }
     if (!j.is_array())
     {
         if(logger)
-            logger->log("Формат файла правил должен быть массивом JSON", "rule_engine", LogLevel::ERROR);
+            logger->log("The format of the rules file must be a JSON array", "rule_engine", LogLevel::ERROR);
         return false;
     }
     rules.clear();
@@ -62,13 +62,13 @@ bool RuleEngine::loadRules(const std::string& fileName)
         if (rule.srcPort < -1 || rule.srcPort > 65535)
         {
             if (logger)
-                logger->log("Некорректный srcPort в правиле: " + std::to_string(rule.srcPort), "rule_engine", LogLevel::WARNING);
+                logger->log("Incorrect srcPort in rule: " + std::to_string(rule.srcPort), "rule_engine", LogLevel::DEBUG);
             continue; 
         }
         if (rule.dstPort < -1 || rule.dstPort > 65535)
         {
             if(logger)
-                logger->log("Некорректный dstPort в правиле: " + std::to_string(rule.dstPort), "rule_engine", LogLevel::WARNING);
+                logger->log("Incorrect dstPort in rule: " + std::to_string(rule.dstPort), "rule_engine", LogLevel::DEBUG);
             continue;
         }
 
@@ -76,7 +76,7 @@ bool RuleEngine::loadRules(const std::string& fileName)
 
     }
     if(logger)
-        logger->log("Успешно загружено правил: " + std::to_string(rules.size()), "rule_engine", LogLevel::INFO);
+        logger->log("Rules loaded successfully: " + std::to_string(rules.size()), "rule_engine", LogLevel::INFO);
     return true;
 }
 
@@ -85,7 +85,7 @@ bool RuleEngine::checkPacket(const Packet& packet)
     if (whitelist.contains(packet.srcIP))
     {
         if(logger)
-            logger->log("IP из белого списка, пропускаем: " + packet.srcIP, "rule_engine", LogLevel::INFO);
+            logger->log("IP from the white list, skip: " + packet.srcIP, "rule_engine", LogLevel::INFO);
         return false;
     }
 
@@ -102,7 +102,7 @@ bool RuleEngine::checkPacket(const Packet& packet)
         if (!rule.protocol.empty() && rule.protocol != packet.protocol)
             continue;
         if(logger)
-            logger->log("Обнаружен подозрительный пакет: " + packet.summary(), "rule_engine", LogLevel::WARNING);
+            logger->log("Suspicious package detected: " + packet.summary(), "rule_engine", LogLevel::WARNING);
 
         // Блокируем IP
         if (!blockedIPs.contains(packet.srcIP))
@@ -110,20 +110,20 @@ bool RuleEngine::checkPacket(const Packet& packet)
             if (nft.blockIP(packet.srcIP))
             {
                 this->blockedIPs.insert(packet.srcIP);
-                //if(logger)
-                    //logger->log(std::string("IP заблокирован по правилу: ") + packet.srcIP, "rule_engine", LogLevel::WARNING);
+                if(logger)
+                    logger->log(std::string("IP blocked by rule: ") + packet.srcIP, "rule_engine", LogLevel::WARNING);
             }
-            //else
-            //{
-            //    if(logger)
-            //        logger->log(std::string("Ошибка блокировки IP: ") + packet.srcIP, "rule_engine", LogLevel::ERROR);
-            //}
+            else
+            {
+                if(logger)
+                    logger->log(std::string("IP blocking error: ") + packet.srcIP, "rule_engine", LogLevel::ERROR);
+            }
         }
         else
-        //{
-        //    if(logger)
-        //        logger->log(std::string("IP уже заблокирован: ") + packet.srcIP, "rule_engine", LogLevel::WARNING);
-        //}
+        {
+            if(logger)
+               logger->log(std::string("IP already blocked: ") + packet.srcIP, "rule_engine", LogLevel::WARNING);
+        }
         return true;
     }
 
@@ -135,8 +135,8 @@ bool RuleEngine::loadWhitelist(const std::string& fileName)
     std::ifstream file(fileName);
     if (!file.is_open())
     {
-        //if(logger)
-            //logger->log(std::string("Не удалось открыть файл whitelist: ") + fileName, "rule_engine", LogLevel::ERROR);
+        if(logger)
+            logger->log(std::string("Failed to open file whitelist: ") + fileName, "rule_engine", LogLevel::ERROR);
         return false;
     }
 
@@ -147,7 +147,7 @@ bool RuleEngine::loadWhitelist(const std::string& fileName)
             this->whitelist.insert(line);
     }
 
-    //if(logger)
-        //logger->log(std::string("Загружен whitelist из файла: ") + fileName, "rule_engine", LogLevel::INFO);
+    if(logger)
+        logger->log(std::string("Loaded whitelist from file: ") + fileName, "rule_engine", LogLevel::INFO);
     return true;
 }
