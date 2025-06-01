@@ -64,3 +64,14 @@ echo "The service of the hybridIDS is launched as follows:"
 echo "  sudo systemctl start hybridids.service"
 echo "Logs can be viewed at the address:"
 echo "  /opt/hybridids/logs/hibridIDS.log"
+
+
+read -p "[build.sh]: Clear temporary build files (build/, bin/ и пр.)? [y/N] " confirm
+
+if [[ "$confirm" =~ ^[Yy]$ ]]; then
+  echo "[build.sh]: Deleting temporary files..."
+  sudo rm -rf build/ bin/ CMakeUserPresets.json .Dockerfile.swo .Dockerfile.swp
+  echo "[build.sh]: Cleaning completed."
+else
+  echo "[build.sh]: Temporary files have been saved."
+fi
