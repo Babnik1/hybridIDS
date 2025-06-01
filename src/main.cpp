@@ -10,6 +10,7 @@
 #include "logger.h"
 #include "packet.h"
 #include "config_utils.h"
+#include "heuristic_engine.h"
 
 std::string configPath = "config/config.json";
 
@@ -55,22 +56,22 @@ int main()
         return 1;
     }
 
+    HeuristicEngine heuristicEngine(&logger);
     NftablesControl nftables(&logger);
     Sniffer sniffer(config.interface, &logger);
 
-    sniffer.setPacketHandler([&](const Packet& pkt) 
+    sniffer.setPacketHandler([&](const Packet& pkt, const uint8_t* rawData, size_t dataLen)
     {
-        if (ruleEngine.checkPacket(pkt))
+        bool sigDetect = ruleEngine.checkPacket(pkt);
+        bool heurDetect = heuristicEngine.analyzePacket(pkt, rawData, dataLen);
+        if (sigDetect || heurDetect)
         {
-            logger.log("Threat found:" + pkt.summary(), "rule_engine", LogLevel::WARNING);
+            logger.log("Threat detected from IP: " + pkt.srcIP, "main", LogLevel::WARNING);
             nftables.blockIP(pkt.srcIP);
         }
     });
 
-    std::thread snifferThread([&]()
-    {
-        sniffer.start();
-    });
+    sniffer.start();
 
     while (running)
     {
@@ -79,9 +80,6 @@ int main()
 
     logger.log("Stop hybridIDS", "main", LogLevel::INFO);
     sniffer.stop();
-
-    if (snifferThread.joinable())
-        snifferThread.join();
 
     logger.log("hybridIDS completed", "main", LogLevel::INFO);
     return 0;

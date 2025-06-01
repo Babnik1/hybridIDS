@@ -19,6 +19,7 @@ set(SOURCES
     src/logger.cpp
     src/packet.cpp
     src/config_utils.cpp
+    src/heuristic_engine.cpp
 )
 
 add_executable(hybridIDS ${SOURCES})

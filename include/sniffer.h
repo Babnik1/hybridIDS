@@ -11,7 +11,7 @@
 class Sniffer
 {
 public:
-    using PacketHandler = std::function<void(const Packet&)>;
+    using PacketHandler = std::function<void(const Packet&, const uint8_t*, size_t)>;
 
     Sniffer(const std::string& interfaceName, Logger* logger = nullptr);
     ~Sniffer();

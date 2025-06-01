@@ -6,7 +6,6 @@
 #include <net/ethernet.h> // для ether_header
 #include <arpa/inet.h>
 
-#include "logger.h"
 
 Sniffer::Sniffer(const std::string& interfaceName, Logger* logger) : interface(interfaceName), logger(logger){}
 
@@ -113,7 +112,7 @@ void Sniffer::captureLoop()
             }
 
             if (packetHandler)
-                packetHandler(pkt);
+                packetHandler(pkt, data, header->caplen);
         }
         else if (result == -1)
         {
