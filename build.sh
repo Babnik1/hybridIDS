@@ -66,7 +66,7 @@ echo "Logs can be viewed at the address:"
 echo "  /opt/hybridids/logs/hibridIDS.log"
 
 
-read -p "[build.sh]: Clear temporary build files (build/, bin/ и пр.)? [y/N] " confirm
+read -p "[build.sh]: Clear temporary build files (build/, bin/ and etc.)? [y/N] " confirm
 
 if [[ "$confirm" =~ ^[Yy]$ ]]; then
   echo "[build.sh]: Deleting temporary files..."
