@@ -3,6 +3,7 @@
 #include <iostream>
 #include <net/ethernet.h>
 #include <netinet/ip.h>
+#include <netinet/udp.h>
 
 #include "heuristic_engine.h"
 
@@ -14,19 +15,32 @@ bool HeuristicEngine::analyzePacket(const Packet& packet, const uint8_t* rawData
 {
     bool suspicious = false;
 
-    if (checkPacketRate(packet)) suspicious = true;
     if (packet.protocol == "TCP")
     {
+        if (checkPacketRateTCP(packet)) suspicious = true;
         if (checkTcpFlags(packet, rawData, dataLen)) suspicious = true;
         if (checkEmptyTcpPacket(packet, rawData, dataLen)) suspicious = true;
     }
+    else if (packet.protocol == "UDP")
+    {
+        if (checkPacketRateUDP(packet)) suspicious = true;
+        if (checkEmptyUdpPacket(packet, rawData, dataLen)) suspicious = true;
+        if (checkUdpPacketSize(dataLen)) suspicious = true;
+    }
+
     if (checkPortAnomalies(packet)) suspicious = true;
+
     if (checkPacketSizeAnomaly(dataLen)) suspicious = true;
+
+    if (packet.protocol == "UDP")
+    {
+        if (checkUdpPortAnomalies(packet)) suspicious = true;
+    }
 
     return suspicious;
 }
 
-bool HeuristicEngine::checkPacketRate(const Packet& packet)
+bool HeuristicEngine::checkPacketRateTCP(const Packet& packet)
 {
     using clock = std::chrono::steady_clock;
     auto now = clock::now();
@@ -57,6 +71,115 @@ bool HeuristicEngine::checkPacketRate(const Packet& packet)
             return true;
         }
     }
+    return false;
+}
+
+bool HeuristicEngine::checkPacketRateUDP(const Packet& packet)
+{
+    using clock = std::chrono::steady_clock;
+    auto now = clock::now();
+
+    auto& stats = ipStatsUDP[packet.srcIP];
+    if (stats.packetCount == 0)
+    {
+        stats.firstPacketTime = now;
+        stats.packetCount = 1;
+        return false;
+    }
+
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(now - stats.firstPacketTime);
+    if (duration > timeWindow)
+    {
+        stats.packetCount = 1;
+        stats.firstPacketTime = now;
+        return false;
+    }
+    else
+    {
+        stats.packetCount++;
+        if (stats.packetCount > packetThreshold)
+        {
+            if (logger)
+                logger->log("Heuristic alert: High UDP packet rate from IP " + packet.srcIP, "heuristic_engine", LogLevel::WARNING);
+            stats.packetCount = 0;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool HeuristicEngine::checkEmptyUdpPacket(const Packet& packet, const uint8_t* rawData, size_t dataLen)
+{
+    if (packet.protocol != "UDP")
+        return false;
+
+    if (dataLen < sizeof(ether_header) + sizeof(ip) + sizeof(udphdr))
+        return false;
+
+    const ip* iphdr = (const ip*)(rawData + sizeof(ether_header));
+    size_t ipHeaderLen = iphdr->ip_hl * 4;
+
+    if (dataLen < sizeof(ether_header) + ipHeaderLen + sizeof(udphdr))
+        return false;
+
+    const udphdr* udph = (const udphdr*)(rawData + sizeof(ether_header) + ipHeaderLen);
+
+    size_t udpPayloadLen = ntohs(udph->len) - sizeof(udphdr);
+
+    if (udpPayloadLen == 0)
+    {
+        if (logger)
+            logger->log("Heuristic alert: Empty UDP packet from IP " + packet.srcIP, "heuristic_engine", LogLevel::WARNING);
+        return true;
+    }
+    return false;
+}
+
+bool HeuristicEngine::checkUdpPacketSize(size_t dataLen)
+{
+    // UDP заголовок — 8 байт, минимальный IP заголовок 20 байт, Ethernet 14 байт
+    // Обычно payload UDP > 8 байт, слишком маленькие и слишком большие — подозрительно
+    const size_t minSize = sizeof(ether_header) + sizeof(ip) + sizeof(udphdr) + 8;  // 8 — минимальный полезный размер
+    const size_t maxSize = 576; // Часто используют max UDP packet size ~576 байт (можно изменить)
+
+    if (dataLen < minSize)
+    {
+        if (logger)
+            logger->log("Heuristic alert: Very small UDP packet size: " + std::to_string(dataLen), "heuristic_engine", LogLevel::WARNING);
+        return true;
+    }
+    if (dataLen > maxSize)
+    {
+        if (logger)
+            logger->log("Heuristic alert: Very large UDP packet size: " + std::to_string(dataLen), "heuristic_engine", LogLevel::WARNING);
+        return true;
+    }
+    return false;
+}
+
+bool HeuristicEngine::checkUdpPortAnomalies(const Packet& packet)
+{
+    // Порты вне диапазона 1-65535
+    if (packet.srcPort < 0 || packet.srcPort > 65535)
+    {
+        if (logger)
+            logger->log("Heuristic alert: Invalid UDP source port " + std::to_string(packet.srcPort) + " from IP " + packet.srcIP, "heuristic_engine", LogLevel::WARNING);
+        return true;
+    }
+    if (packet.dstPort < 0 || packet.dstPort > 65535)
+    {
+        if (logger)
+            logger->log("Heuristic alert: Invalid UDP destination port " + std::to_string(packet.dstPort) + " from IP " + packet.srcIP, "heuristic_engine", LogLevel::WARNING);
+        return true;
+    }
+
+    // Много трафика на системные порты (например, 0-1023) без явной причины подозрительно
+    if ((packet.srcPort > 0 && packet.srcPort < 1024) || (packet.dstPort > 0 && packet.dstPort < 1024))
+    {
+        if (logger)
+            logger->log("Heuristic alert: UDP traffic on system port from IP " + packet.srcIP, "heuristic_engine", LogLevel::WARNING);
+    }
+
     return false;
 }
 
