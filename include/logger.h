@@ -18,7 +18,7 @@ public:
     Logger(const std::string& filename = "logs/hybridIDS.log");
     ~Logger();
 
-    void log(const std::string& message, const std::string& module = "general", LogLevel level = LogLevel::INFO);
+    virtual void log(const std::string& message, const std::string& module = "general", LogLevel level = LogLevel::INFO);
     void setLogLevel(LogLevel level);
     static std::string levelToString(LogLevel level);
 

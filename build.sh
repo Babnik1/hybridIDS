@@ -13,11 +13,26 @@ docker run --rm -it \
   -v "$PWD":/app \
   -w /app \
   $IMAGE_NAME \
-  bash -c " \
-    [ -f ~/.conan2/profiles/default ] || conan profile detect && \
-    conan install . --output-folder=build --build=missing && \
-    cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release && \
+  bash -c "
+    echo '[*] Cleaning build directory...'
+    rm -rf build
+
+    echo '[*] Installing dependencies with Conan...'
+    [ -f ~/.conan2/profiles/default ] || conan profile detect
+    conan install . --output-folder=build --build=missing
+
+    echo '[*] Configuring CMake with tests enabled...'
+    cmake -S . -B build \
+      -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DENABLE_TESTS=ON
+
+    echo '[*] Building the project...'
     cmake --build build
+
+    echo '[*] Running unit tests...'
+    cd build
+    ctest -V --output-on-failure
   "
 
 echo "[build.sh]: Assembly complete."
