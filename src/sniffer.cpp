@@ -77,6 +77,8 @@ void Sniffer::captureLoop()
             pkt.srcIP = inet_ntoa(iphdr->ip_src);
             pkt.dstIP = inet_ntoa(iphdr->ip_dst);
 
+            const u_char* transportHeader = data + sizeof(ether_header) + iphdr->ip_hl * 4;
+
             // Протокол
             switch (iphdr->ip_p)
             {
@@ -102,6 +104,14 @@ void Sniffer::captureLoop()
                     const struct udphdr* udph = (const struct udphdr*)(data + sizeof(ether_header) + iphdr->ip_hl * 4);
                     pkt.srcPort = ntohs(udph->uh_sport);
                     pkt.dstPort = ntohs(udph->uh_dport);
+                    break;
+                }
+                case IPPROTO_ICMP:
+                {
+                    pkt.protocol = "ICMP";
+                    const uint8_t* icmpHeader = transportHeader;
+                    pkt.icmpType = icmpHeader[0];
+                    pkt.icmpCode = icmpHeader[1];
                     break;
                 }
                 default:

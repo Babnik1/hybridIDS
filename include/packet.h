@@ -13,7 +13,8 @@ class Packet
     uint16_t dstPort = 0;
     std::string protocol;
 
-    std::string summary() const;
+    uint8_t icmpType = 0;
+    uint8_t icmpCode = 0;
 
-    //TODO: Валидацию, сеттеры и геттеры
+    std::string summary() const;
 };

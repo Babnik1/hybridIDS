@@ -42,4 +42,8 @@ private:
     bool checkEmptyUdpPacket(const Packet& packet, const uint8_t* rawData, size_t dataLen);
     bool checkUdpPacketSize(size_t dataLen);
     bool checkUdpPortAnomalies(const Packet& packet);
+
+    bool checkPacketRateICMP(const Packet& packet);
+    bool checkIcmpAnomalies(const Packet& packet, const uint8_t* rawData, size_t dataLen);
+
 };

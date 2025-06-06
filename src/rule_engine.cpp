@@ -58,7 +58,11 @@ bool RuleEngine::loadRules(const std::string& fileName)
             rule.dstPort = item["dst_port"].get<int>();
         if(item.contains("protocol"))
             rule.protocol = item["protocol"].get<std::string>();
-        
+        if(item.contains("icmp_type"))
+            rule.icmpType = item["icmp_type"].get<int>();
+        if(item.contains("icmp_code"))
+            rule.icmpCode = item["icmp_code"].get<int>();
+
         if (rule.srcPort < -1 || rule.srcPort > 65535)
         {
             if (logger)
@@ -95,12 +99,22 @@ bool RuleEngine::checkPacket(const Packet& packet)
             continue;
         if (!rule.dstIP.empty() && rule.dstIP != packet.dstIP)
             continue;
-        if (rule.srcPort != -1 && rule.srcPort != packet.srcPort)
-            continue;
-        if (rule.dstPort != -1 && rule.dstPort != packet.dstPort)
-            continue;
         if (!rule.protocol.empty() && rule.protocol != packet.protocol)
             continue;
+        if (packet.protocol == "ICMP")
+        {
+            if (rule.icmpType != -1 && rule.icmpType != packet.icmpType)
+                continue;
+            if (rule.icmpCode != -1 && rule.icmpCode != packet.icmpCode)
+                continue;
+        }
+        else
+        {
+            if (rule.srcPort != -1 && rule.srcPort != packet.srcPort)
+                continue;
+            if (rule.dstPort != -1 && rule.dstPort != packet.dstPort)
+                continue;
+        }
 
         time_t now = std::time(nullptr);
         auto it = recentAlerts.find(packet.srcIP);

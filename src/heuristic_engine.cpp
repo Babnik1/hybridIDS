@@ -301,3 +301,70 @@ bool HeuristicEngine::checkPacketSizeAnomaly(size_t dataLen)
     }
     return false;
 }
+
+bool HeuristicEngine::checkPacketRateICMP(const Packet& packet)
+{
+    using clock = std::chrono::steady_clock;
+    auto now = clock::now();
+
+    auto& stats = ipStats[packet.srcIP];  // Общая статистика (используем ту же map)
+    if (stats.packetCount == 0)
+    {
+        stats.firstPacketTime = now;
+        stats.packetCount = 1;
+        return false;
+    }
+
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(now - stats.firstPacketTime);
+    if (duration > timeWindow)
+    {
+        stats.packetCount = 1;
+        stats.firstPacketTime = now;
+        return false;
+    }
+    else
+    {
+        stats.packetCount++;
+        if (stats.packetCount > packetThreshold)
+        {
+            if (logger)
+                logger->log("Heuristic alert: High ICMP packet rate from IP " + packet.srcIP, "heuristic_engine", LogLevel::WARNING);
+            stats.packetCount = 0;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool HeuristicEngine::checkIcmpAnomalies(const Packet& packet, const uint8_t* rawData, size_t dataLen)
+{
+    if (packet.protocol != "ICMP")
+        return false;
+
+    if (dataLen < sizeof(ether_header) + sizeof(ip) + 4) // Минимум для ICMP-заголовка
+        return false;
+
+    const ip* iphdr = (const ip*)(rawData + sizeof(ether_header));
+    size_t ipHeaderLen = iphdr->ip_hl * 4;
+
+    const uint8_t* icmpData = rawData + sizeof(ether_header) + ipHeaderLen;
+    uint8_t type = icmpData[0];
+    uint8_t code = icmpData[1];
+
+    // Пример аномалий:
+    // - Частые эхо-запросы
+    // - Неизвестные типы (>18 по IANA)
+    if (type == 8) // Echo Request (ping)
+    {
+        if (logger)
+            logger->log("Heuristic alert: ICMP Echo Request from IP " + packet.srcIP, "heuristic_engine", LogLevel::INFO);
+    }
+    else if (type > 18)
+    {
+        if (logger)
+            logger->log("Heuristic alert: Unknown ICMP type " + std::to_string(type) + " from IP " + packet.srcIP, "heuristic_engine", LogLevel::WARNING);
+        return true;
+    }
+
+    return false;
+}

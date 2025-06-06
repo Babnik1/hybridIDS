@@ -16,6 +16,9 @@ struct Rule
     int srcPort = -1;
     int dstPort = -1;
     std::string protocol;
+
+    int icmpType = -1;
+    int icmpCode = -1;
 };
 
 class RuleEngine
