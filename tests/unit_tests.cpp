@@ -22,6 +22,8 @@
 #include "../include/packet.h"
 #include "../include/sniffer.h"
 
+std::chrono::seconds floodInterval{0};
+
 //
 // ---------------- CONFIG_UTILS ----------------
 //
@@ -80,7 +82,7 @@ TEST_F(ConfigUtilsTest, LoadMissingFile) {
 //
 class DummyLogger : public Logger {
 public:
-    DummyLogger() : Logger("/dev/null") {}
+    DummyLogger() : Logger(std::chrono::seconds(0), "/dev/null") {}
     std::vector<std::string> messages;
     void log(const std::string& msg, const std::string& src, LogLevel lvl) override {
         messages.push_back(msg);
@@ -164,7 +166,7 @@ TEST(HeuristicEngineTest, SuspiciousTcpFlagsDetected) {
     tcphdr* tcph = (tcphdr*)(raw + sizeof(ether_header) + sizeof(ip));
     tcph->th_off = 5;
     ((uint8_t*)tcph)[13] = TH_SYN | TH_FIN;
-
+    std::this_thread::sleep_for(std::chrono::milliseconds(1100));
     engine.analyzePacket(p, raw, sizeof(raw));
     ASSERT_FALSE(logger.messages.empty());
 }
@@ -183,6 +185,7 @@ TEST(HeuristicEngineTest, EmptyTcpPayloadDetected) {
     tcphdr* tcph = (tcphdr*)(raw + sizeof(ether_header) + sizeof(ip));
     tcph->th_off = 5;
 
+    std::this_thread::sleep_for(std::chrono::milliseconds(5500));
     engine.analyzePacket(p, raw, sizeof(raw));
     ASSERT_FALSE(logger.messages.empty());
 }
@@ -230,7 +233,7 @@ TEST(HeuristicEngineTest, IcmpPacketWithSuspiciousTypeTriggersAlert) {
     icmph->type = 3;  // Destination unreachable
     icmph->code = 13; // Communication administratively prohibited
     icmph->checksum = 0;
-
+    std::this_thread::sleep_for(std::chrono::milliseconds(5500));
     engine.analyzePacket(p, raw, 28);
 
     ASSERT_FALSE(logger.messages.empty());
@@ -256,7 +259,7 @@ protected:
 };
 
 TEST_F(LoggerTest, LogWritesToFileAndConsole) {
-    Logger logger(testLogFile);
+    Logger logger(floodInterval, testLogFile);
     logger.setLogLevel(LogLevel::DEBUG);
 
     std::string message = "Test message";
@@ -269,7 +272,7 @@ TEST_F(LoggerTest, LogWritesToFileAndConsole) {
 }
 
 TEST_F(LoggerTest, LogLevelFiltering) {
-    Logger logger(testLogFile);
+    Logger logger(floodInterval, testLogFile);
     logger.setLogLevel(LogLevel::WARNING);
 
     logger.log("This should not appear", "test", LogLevel::INFO);
@@ -281,7 +284,7 @@ TEST_F(LoggerTest, LogLevelFiltering) {
 }
 
 TEST_F(LoggerTest, TimestampFormat) {
-    Logger logger(testLogFile);
+    Logger logger(floodInterval, testLogFile);
     logger.setLogLevel(LogLevel::DEBUG);
     logger.log("Timestamp test", "time", LogLevel::INFO);
 

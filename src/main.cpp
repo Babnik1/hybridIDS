@@ -32,7 +32,7 @@ int main()
         std::cerr << "Failed to load configuration from config.json\n";
         return 1;
     }
-    Logger logger;
+    Logger logger( std::chrono::seconds(config.alertCooldown) );
     logger.setLogLevel(config.logLevel);
     globalLogger = &logger;
 

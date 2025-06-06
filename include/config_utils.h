@@ -6,7 +6,7 @@
 struct Config {
     std::string interface;
     LogLevel logLevel = LogLevel::INFO;
-    int alertCooldown = 10;
+    int alertCooldown = 5;
     int heuristicPacketThreshold = 100;
     int heuristicTimeWindowSeconds = 10;
 };

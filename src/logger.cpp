@@ -2,21 +2,29 @@
 #include <chrono>
 #include <iomanip>
 #include <ctime>
-#include <nlohmann/json.hpp>
-#include <fstream>
-#include <algorithm>
+#include <regex>
 
 #include "logger.h"
 
-using json = nlohmann::json;
+std::string extractIP(const std::string& msg) {
+    static std::regex ipRegex(R"((\d{1,3}\.){3}\d{1,3})");
+    std::smatch match;
+    if (std::regex_search(msg, match, ipRegex)) {
+        return match.str(0);
+    }
+    return "";
+}
 
-Logger::Logger(const std::string& filename)
+
+Logger::Logger(std::chrono::seconds floodInterval, const std::string& filename)
+    : floodInterval(floodInterval)
 {
     logFile.open(filename, std::ios::app);
     if (!logFile)
     {
         std::cout << "Error opening log file: " << filename << std::endl;
     }
+    lastLogTime = std::chrono::steady_clock::now() - floodInterval - std::chrono::seconds(1); // чтобы первое сообщение точно прошло
 }
 
 Logger::~Logger()
@@ -44,7 +52,6 @@ std::string Logger::levelToString(LogLevel level)
     }
 }
 
-
 std::string Logger::getTimestamp() const
 {
     auto now = std::chrono::system_clock::now();
@@ -62,9 +69,22 @@ void Logger::log(const std::string& message, const std::string& module, LogLevel
 {
     if (level < currentLevel) return;
 
-    std::lock_guard<std::mutex> lock(logMutex);
-    std::string timestamp = getTimestamp();
-    std::string fullMessage = "[" + timestamp + "][" + levelToString(level) + "][" + module + "] " + message;
+    std::string ip = extractIP(message);
+    std::string key = levelToString(level) + "|" + ip;
+    auto now = std::chrono::steady_clock::now();
+
+    {
+        std::lock_guard<std::mutex> lock(logMutex);
+        if (!ip.empty() && floodMap.count(key) && now - floodMap[key] < floodInterval)
+        {
+            return; // подавляем спам
+        }
+        floodMap[key] = now;
+    }
+
+    std::string fullMessage = "[" + getTimestamp() + "][" + levelToString(level) + "][" + module + "] " + message;
+
+    std::lock_guard<std::mutex> lock(logMutex); // новый лок для вывода
 
     if (logFile.is_open())
     {
@@ -73,3 +93,4 @@ void Logger::log(const std::string& message, const std::string& module, LogLevel
 
     std::cout << fullMessage << std::endl;
 }
+
