@@ -27,6 +27,10 @@ bool HeuristicEngine::analyzePacket(const Packet& packet, const uint8_t* rawData
         if (checkEmptyUdpPacket(packet, rawData, dataLen)) suspicious = true;
         if (checkUdpPacketSize(dataLen)) suspicious = true;
     }
+    if (packet.protocol == "ICMP") {
+        if (checkPacketRateICMP(packet)) suspicious = true;
+        if (checkIcmpAnomalies(packet, rawData, dataLen)) suspicious = true;
+    }
 
     if (checkPortAnomalies(packet)) suspicious = true;
 
